@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Property Investment ROI Analyzer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --primary: #3498db;
+  --secondary: #2c3e50;
+  --success: #27ae60;
+  --warning: #e74c3c;
+  --gold: #FFD700;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f0f4f8;
+  margin: 0;
+  padding: 0;
+}
+header {
+  background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+}
+.container {
+  max-width: 1600px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+.panel {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+  padding: 2rem 2rem 1.5rem 2rem;
+}
+.panel:first-child {
+  flex: 1 1 400px;
+  min-width: 360px;
+  max-width: 420px;
+}
+.panel:last-child {
+  flex: 3 0 1000px;
+  min-width: 700px;
+  max-width: 1150px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 1.08em;
+  background: #fff;
+  /* Remove: table-layout: fixed; */
+}
+th, td {
+  padding: 18px 20px;
+  text-align: right;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+}
+th:first-child, td:first-child {
+  text-align: left;
+  padding-left: 16px;
+  padding-right: 14px;
+  /* Remove min-width/width, so browser sets it naturally */
+}
+th {
+  background-color: var(--primary);
+  color: white;
+  text-align: center;
+  font-size: 1.13em;
+}
+tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.clickable-row:hover {
+  background-color: #e6f2ff;
+}
+.details-row {
+  background-color: #f9f9f9;
+  display: none;
+}
+.details-content {
+  padding: 15px;
+  background-color: white;
+  border-left: 4px solid var(--primary);
+}
+.positive {
+  color: var(--success);
+  font-weight: bold;
+}
+.negative {
+  color: var(--warning);
+  font-weight: bold;
+}
+.gold {
+  color: var(--gold);
+  font-weight: bold;
+}
+.input-group {
+  margin-bottom: 1.5rem;
+}
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+input[type="range"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+input[type="range"] {
+  accent-color: var(--primary);
+}
+input[type="range"].changed {
+  accent-color: var(--success);
+}
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.slider-container input[type="range"] {
+  flex: 1;
+}
+.slider-container input[type="number"] {
+  width: 100px;
+}
+.note {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+.dropdown-container {
+  margin: 1rem 0;
+}
+.dropdown-container label {
+  margin-bottom: 0.5rem;
+}
+.dp-amount {
+  font-size: 0.9rem;
+  color: var(--primary);
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+.investment-options {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+.investment-option {
+  padding: 0.5rem 1rem;
+  background: #eee;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.investment-option.active {
+  background: var(--primary);
+  color: white;
+}
+.section-title {
+  font-weight: bold;
+  margin: 1.5rem 0 0.5rem;
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 0.5rem;
+}
+@media (max-width: 1050px) {
+  .container {
+    flex-direction: column;
+  }
+  .panel:last-child,
+  .panel:first-child {
+    max-width: 100%;
+    min-width: 0;
+  }
+  th,
+  td {
+    padding: 12px 6px;
+    min-width: 70px;
+    font-size: 0.98em;
+    white-space: normal;
+  }
+  th:first-child,
+  td:first-child {
+    min-width: 32px;
+    width: 38px;
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Property Investment ROI Analyzer</h1>
+  <p>Compare buying vs renting strategies with detailed projections</p>
+</header>
+<div class="container">
+  <div class="panel">
+    <h3>Investment Parameters</h3>
+    <div class="input-group">
+      <label>Property Value</label>
+      <div class="slider-container">
+        <input id="priceRange" type="range" min="20" max="2000" value="100" step="1" />
+        <input id="priceNum" type="number" value="100" min="20" max="2000" />
+      </div>
+      <div id="priceUnitDisplay">1.00 Cr</div>
+    </div>
+    <div class="input-group">
+      <label>Investor's Total Capital (₹)</label>
+      <div class="slider-container">
+        <input id="capitalRange" type="range" min="10" max="5000" value="100" step="1" />
+        <input id="capitalNum" type="number" value="100" min="10" max="5000" />
+      </div>
+      <div id="capitalUnitDisplay">1.00 Cr</div>
+    </div>
+    <div class="input-group">
+      <label>Monthly Rent (₹) <span class="note">(Auto-calculated as 0.33% of property value)</span></label>
+      <div class="slider-container">
+        <input id="rentRange" type="range" min="1000" max="200000" step="1000" value="33000" />
+        <input id="rentNum" type="number" value="33000" min="1000" max="200000" />
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Annual Rent Increase (%)</label>
+      <div class="slider-container">
+        <input id="rentIncRange" type="range" min="0" max="20" step="0.5" value="5" />
+        <input id="rentIncNum" type="number" value="5" min="0" max="20" step="0.5" />
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Loan Tenure (Years)</label>
+      <div class="slider-container">
+        <input id="tenureRange" type="range" min="5" max="30" value="20" />
+        <input id="tenureNum" type="number" value="20" min="5" max="30" />
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Interest Rate (% p.a.)</label>
+      <div class="slider-container">
+        <input id="rateRange" type="range" min="5" max="15" step="0.1" value="8.5" />
+        <input id="rateNum" type="number" value="8.5" min="5" max="15" step="0.1" />
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Down Payment (%)</label>
+      <div class="slider-container">
+        <input id="dpPercRange" type="range" min="10" max="90" step="1" value="20" />
+        <input id="dpPercNum" type="number" value="20" min="10" max="90" />
+      </div>
+      <div class="dp-amount" id="dpAmountDisplay">Down Payment Amount: 20.00 L</div>
+    </div>
+    <div class="input-group">
+      <label>Property Appreciation (% p.a.)</label>
+      <div class="slider-container">
+        <input id="apprecRange" type="range" min="0" max="15" step="0.1" value="5" />
+        <input id="apprecNum" type="number" value="5" min="0" max="15" step="0.1" />
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="dropdown-container">
+      <label for="investmentOption">Alternate Investment Option:</label>
+      <div class="investment-options">
+        <div id="optFD" class="investment-option active" onclick="selectInvestmentOption('FD')">FD (7%)</div>
+        <div id="optGold" class="investment-option" onclick="selectInvestmentOption('Gold')">Gold (8%)</div>
+        <div id="optEquity" class="investment-option" onclick="selectInvestmentOption('Equity')">Equity (12%)</div>
+      </div>
+      <p class="note">Select where surplus funds would be invested</p>
+    </div>
+    <div class="section-title">Global Scenarios (Independent of Your Capital)</div>
+    <table id="globalTbl">
+      <thead>
+        <tr>
+          <th>Scenario</th>
+          <th>Total Investment</th>
+          <th>Final Wealth</th>
+        </tr>
+      </thead>
+      <tbody id="globalBody"></tbody>
+    </table>
+    <div class="section-title">Personalized Scenarios (Based on Your Capital)</div>
+    <table id="personalTbl">
+      <thead>
+        <tr>
+          <th>Scenario</th>
+          <th>Total Investment</th>
+          <th>Final Wealth</th>
+        </tr>
+      </thead>
+      <tbody id="personalBody"></tbody>
+    </table>
+    <div class="section-title">Year-by-Year Breakdown (Partial Scenario)</div>
+    <table id="yearTbl">
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Property Value</th>
+          <th>Rent Income</th>
+          <th>EMI Paid</th>
+          <th>Net Cash Flow</th>
+          <th>Remaining Loan</th>
+          <th>Net Worth</th>
+        </tr>
+      </thead>
+      <tbody id="yearBody"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+const defaultValues = {
+  priceRange: 100,
+  capitalRange: 100,
+  rentRange: 33000,
+  rentIncRange: 5,
+  tenureRange: 20,
+  rateRange: 8.5,
+  dpPercRange: 20,
+  apprecRange: 5,
+};
+
+function fmtVal(v) {
+  const absV = Math.abs(v);
+  if (absV >= 10000000) return (v / 10000000).toFixed(2) + " Cr";
+  if (absV >= 100000) return (v / 100000).toFixed(2) + " L";
+  return v.toFixed(0);
+}
+function updateUnitDisplays() {
+  const price = parseFloat(document.getElementById("priceNum").value);
+  const capital = parseFloat(document.getElementById("capitalNum").value);
+  document.getElementById(
+    "priceUnitDisplay"
+  ).textContent = price >= 100 ? (price / 100).toFixed(2) + " Cr" : price.toFixed(2) + " L";
+  document.getElementById(
+    "capitalUnitDisplay"
+  ).textContent = capital >= 100 ? (capital / 100).toFixed(2) + " Cr" : capital.toFixed(2) + " L";
+}
+function updateDPAmount() {
+  const price = parseFloat(document.getElementById("priceNum").value) * 100000;
+  const dpPerc = parseFloat(document.getElementById("dpPercNum").value) / 100;
+  const dpAmount = price * dpPerc;
+  document.getElementById("dpAmountDisplay").textContent = `Down Payment Amount: ${fmtVal(dpAmount)}`;
+}
+function autoCalculateRent() {
+  const price = document.getElementById("priceNum").value;
+  const rent = Math.round(price * 100000 * 0.0033);
+  document.getElementById("rentNum").value = rent;
+  document.getElementById("rentRange").value = rent;
+}
+let currentInvestmentOption = "FD";
+function selectInvestmentOption(option) {
+  currentInvestmentOption = option;
+  document.getElementById("optFD").classList.toggle("active", option === "FD");
+  document.getElementById("optGold").classList.toggle("active", option === "Gold");
+  document.getElementById("optEquity").classList.toggle("active", option === "Equity");
+  calculateROI();
+}
+function getInvestmentReturnRate() {
+  switch (currentInvestmentOption) {
+    case "Gold":
+      return 0.08;
+    case "Equity":
+      return 0.12;
+    default:
+      return 0.07;
+  }
+}
+function syncInputs(rangeId, numberId) {
+  const range = document.getElementById(rangeId);
+  const number = document.getElementById(numberId);
+  const defaultVal = defaultValues[rangeId];
+  function checkAndUpdateColor() {
+    if (parseFloat(range.value) !== defaultVal) {
+      range.classList.add("changed");
+    } else {
+      range.classList.remove("changed");
+    }
+  }
+  range.addEventListener("input", () => {
+    number.value = range.value;
+    updateUnitDisplays();
+    updateDPAmount();
+    if (rangeId === "priceRange" || rangeId === "priceNum") {
+      autoCalculateRent();
+    }
+    checkAndUpdateColor();
+    calculateROI();
+  });
+  number.addEventListener("input", () => {
+    range.value = number.value;
+    updateUnitDisplays();
+    updateDPAmount();
+    if (rangeId === "priceRange" || rangeId === "priceNum") {
+      autoCalculateRent();
+    }
+    checkAndUpdateColor();
+    calculateROI();
+  });
+}
+function toggleDetails(row, scenario) {
+  const detailsRow = document.getElementById(`${scenario}-details`);
+  detailsRow.style.display = detailsRow.style.display === "table-row" ? "none" : "table-row";
+}
+function calculateROI() {
+  const price = parseFloat(document.getElementById("priceNum").value) * 100000;
+  const capital = parseFloat(document.getElementById("capitalNum").value) * 100000;
+  const rent = parseFloat(document.getElementById("rentNum").value);
+  const rentInc = parseFloat(document.getElementById("rentIncNum").value) / 100;
+  const years = parseFloat(document.getElementById("tenureNum").value);
+  const rate = parseFloat(document.getElementById("rateNum").value) / 100;
+  const dpPerc = parseFloat(document.getElementById("dpPercNum").value) / 100;
+  const invRet = getInvestmentReturnRate();
+  const apprec = parseFloat(document.getElementById("apprecNum").value) / 100;
+
+  if (
+    isNaN(price) ||
+    isNaN(capital) ||
+    isNaN(rent) ||
+    isNaN(years) ||
+    isNaN(rate) ||
+    isNaN(dpPerc) ||
+    dpPerc === 0 ||
+    years <= 0
+  ) {
+    return;
+  }
+  let totRent = 0;
+  let currentRent = rent;
+  for (let y = 1; y <= years; y++) {
+    totRent += currentRent * 12;
+    currentRent *= 1 + rentInc;
+  }
+  const monthlyRate = rate / 12;
+  const months = years * 12;
+  function calculateEMI(loanAmount) {
+    if (loanAmount <= 0) return 0;
+    return (
+      (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+      (Math.pow(1 + monthlyRate, months) - 1)
+    );
+  }
+  const globalBody = document.getElementById("globalBody");
+  globalBody.innerHTML = `
+    <tr class="clickable-row" onclick="toggleDetails(this, 'global-cash')">
+      <td>Full Cash Property Purchase</td>
+      <td>${fmtVal(price)}</td>
+      <td class="positive">${fmtVal(price * Math.pow(1 + apprec, years) + totRent)}</td>
+    </tr>
+    <tr class="details-row" id="global-cash-details">
+      <td colspan="3">
+        <div class="details-content">
+          <p><strong>Final Wealth Calculation:</strong></p>
+          <p>Property Value: ₹${fmtVal(price)} × (1 + ${(apprec * 100).toFixed(1)}%)<sup>${years}</sup> = ₹${fmtVal(
+    price * Math.pow(1 + apprec, years)
+  )}</p>
+          <p>Total Rent Collected: ₹${fmtVal(totRent)}</p>
+          <p>Total Wealth: ₹${fmtVal(price * Math.pow(1 + apprec, years) + totRent)}</p>
+        </div>
+      </td>
+    </tr>
+    <tr class="clickable-row" onclick="toggleDetails(this, 'global-fd')">
+      <td>Full Cash Invested in FD</td>
+      <td>${fmtVal(price)}</td>
+      <td class="positive">${fmtVal(price * Math.pow(1 + 0.07, years))}</td>
+    </tr>
+    <tr class="details-row" id="global-fd-details">
+      <td colspan="3">
+        <div class="details-content">
+          <p><strong>Final Wealth Calculation:</strong></p>
+          <p>Investment Growth: ₹${fmtVal(price)} × (1 + 7.0%)<sup>${years}</sup> = ₹${fmtVal(
+    price * Math.pow(1 + 0.07, years)
+  )}</p>
+        </div>
+      </td>
+    </tr>
+    <tr class="clickable-row" onclick="toggleDetails(this, 'global-gold')">
+      <td>Full Cash Invested in Gold</td>
+      <td>${fmtVal(price)}</td>
+      <td class="gold">${fmtVal(price * Math.pow(1 + 0.08, years))}</td>
+    </tr>
+    <tr class="details-row" id="global-gold-details">
+      <td colspan="3">
+        <div class="details-content">
+          <p><strong>Final Wealth Calculation:</strong></p>
+          <p>Investment Growth: ₹${fmtVal(price)} × (1 + 8.0%)<sup>${years}</sup> = ₹${fmtVal(
+    price * Math.pow(1 + 0.08, years)
+  )}</p>
+        </div>
+      </td>
+    </tr>
+    <tr class="clickable-row" onclick="toggleDetails(this, 'global-equity')">
+      <td>Full Cash Invested in Equity</td>
+      <td>${fmtVal(price)}</td>
+      <td class="positive">${fmtVal(price * Math.pow(1 + 0.12, years))}</td>
+    </tr>
+    <tr class="details-row" id="global-equity-details">
+      <td colspan="3">
+        <div class="details-content">
+          <p><strong>Final Wealth Calculation:</strong></p>
+          <p>Investment Growth: ₹${fmtVal(price)} × (1 + 12.0%)<sup>${years}</sup> = ₹${fmtVal(
+    price * Math.pow(1 + 0.12, years)
+  )}</p>
+        </div>
+      </td>
+    </tr>
+  `;
+
+  const personalBody = document.getElementById("personalBody");
+  const fullDP = Math.min(capital, price);
+  const fullLoan = price - fullDP;
+  const fullEMI = calculateEMI(fullLoan);
+  const fullTotalEMI = fullEMI * months;
+  const fullSurplus = capital - fullDP;
+  const fullPropWealth =
+    price * Math.pow(1 + apprec, years) +
+    totRent -
+    fullTotalEMI +
+    fullSurplus * Math.pow(1 + invRet, years);
+  const requiredDP = price * dpPerc;
+  const canAffordPartial = capital >= requiredDP;
+  const partialDP = canAffordPartial ? requiredDP : 0;
+  const partialLoan = canAffordPartial ? price - partialDP : 0;
+  const partialEMI = calculateEMI(partialLoan);
+  const partialTotalEMI = partialEMI * months;
+  const partialSurplus = capital - partialDP;
+  const partialPropWealth = canAffordPartial
+    ? price * Math.pow(1 + apprec, years) +
+      totRent -
+      partialTotalEMI +
+      partialSurplus * Math.pow(1 + invRet, years)
+    : capital * Math.pow(1 + invRet, years);
+  personalBody.innerHTML = `
+    <tr class="clickable-row" onclick="toggleDetails(this, 'personal-full')">
+      <td>Entire Capital as Down Payment</td>
+      <td>${fmtVal(capital)}</td>
+      <td class="positive">${fmtVal(fullPropWealth)}</td>
+    </tr>
+    <tr class="details-row" id="personal-full-details">
+      <td colspan="3">
+        <div class="details-content">
+          <p><strong>Final Wealth Calculation:</strong></p>
+          <p>Down Payment: ₹${fmtVal(fullDP)}</p>
+          <p>Loan Amount: ₹${fmtVal(fullLoan)}</p>
+          <p>Property Value: ₹${fmtVal(price)} × (1 + ${(apprec * 100).toFixed(1)}%)<sup>${years}</sup> = ₹${fmtVal(
+    price * Math.pow(1 + apprec, years)
+  )}</p>
+          ${
+            fullSurplus > 0
+              ? `<p>Surplus Investment: ₹${fmtVal(fullSurplus)} × (1 + ${(invRet * 100).toFixed(
+                  1
+                )}%)<sup>${years}</sup> = ₹${fmtVal(fullSurplus * Math.pow(
+                  1 + invRet,
+                  years
+                ))}</p>`
+              : ""
+          }
+          <p>Total Rent Collected: ₹${fmtVal(totRent)}</p>
+          ${
+            fullLoan > 0
+              ? `<p>Total EMIs Paid: ₹${fmtVal(fullTotalEMI)}</p>`
+              : ""
+          }
+          <p>Total Wealth: ₹${fmtVal(fullPropWealth)}</p>
+        </div>
+      </td>
+    </tr>
+    <tr class="clickable-row" onclick="toggleDetails(this, 'personal-partial')">
+      <td>Partial Down Payment (${(dpPerc * 100).toFixed(0)}% of Property)</td>
+      <td>${fmtVal(capital)}</td>
+      <td class="positive">${fmtVal(partialPropWealth)}</td>
+    </tr>
+    <tr class="details-row" id="personal-partial-details">
+      <td colspan="3">
+        <div class="details-content">
+          <p><strong>Final Wealth Calculation:</strong></p>
+          ${
+            canAffordPartial
+              ? `
+            <p>Down Payment: ₹${fmtVal(partialDP)} (${(dpPerc * 100).toFixed(0)}% of property)</p>
+            <p>Loan Amount: ₹${fmtVal(partialLoan)}</p>
+            <p>Property Value: ₹${fmtVal(price)} × (1 + ${(apprec * 100).toFixed(
+                  1
+                )}%)<sup>${years}</sup> = ₹${fmtVal(price * Math.pow(1 + apprec, years))}</p>
+            <p>Surplus Investment: ₹${fmtVal(partialSurplus)} × (1 + ${(invRet * 100).toFixed(
+                  1
+                )}%)<sup>${years}</sup> = ₹${fmtVal(partialSurplus * Math.pow(1 + invRet, years))}</p>
+            <p>Total Rent Collected: ₹${fmtVal(totRent)}</p>
+            <p>Total EMIs Paid: ₹${fmtVal(partialTotalEMI)}</p>
+          `
+              : `
+            <p>Insufficient capital for ${(dpPerc * 100).toFixed(0)}% down payment (required: ₹${fmtVal(
+                  requiredDP
+                )})</p>
+            <p>Entire capital invested at ${(invRet * 100).toFixed(
+              1
+            )}% return: ₹${fmtVal(capital)} × (1 + ${(invRet * 100).toFixed(1)})%<sup>${years}</sup></p>
+          `
+          }
+          <p>Total Wealth: ₹${fmtVal(partialPropWealth)}</p>
+        </div>
+      </td>
+    </tr>
+  `;
+  let yearHTML = "";
+  let balance = partialLoan;
+  let propValue = canAffordPartial ? price : 0;
+  currentRent = rent;
+  let cumulativeNetCash = 0;
+  for (let year = 1; year <= years; year++) {
+    let yearlyInterest = 0;
+    let yearlyPrincipal = 0;
+    for (let month = 1; month <= 12; month++) {
+      const interest = balance * monthlyRate;
+      const principal = partialEMI - interest;
+      yearlyInterest += interest;
+      yearlyPrincipal += principal;
+      balance -= principal;
+    }
+    const rentIncome = canAffordPartial ? currentRent * 12 : 0;
+    const emiPaid = partialEMI * 12;
+    const netCash = rentIncome - emiPaid;
+    cumulativeNetCash += netCash;
+    propValue *= 1 + apprec;
+    const investmentValue = partialSurplus * Math.pow(1 + invRet, year);
+    const netWorth = propValue + investmentValue + cumulativeNetCash - balance;
+    yearHTML += `
+      <tr>
+        <td>${year}</td>
+        <td>${fmtVal(propValue)}</td>
+        <td>${fmtVal(rentIncome)}</td>
+        <td>${fmtVal(emiPaid)}</td>
+        <td class="${netCash < 0 ? "negative" : "positive"}">${fmtVal(netCash)}</td>
+        <td>${fmtVal(balance)}</td>
+        <td class="positive">${fmtVal(netWorth)}</td>
+      </tr>
+    `;
+    currentRent *= 1 + rentInc;
+  }
+  document.getElementById("yearBody").innerHTML = yearHTML;
+}
+document.addEventListener("DOMContentLoaded", function () {
+  syncInputs("priceRange", "priceNum");
+  syncInputs("capitalRange", "capitalNum");
+  syncInputs("rentRange", "rentNum");
+  syncInputs("rentIncRange", "rentIncNum");
+  syncInputs("tenureRange", "tenureNum");
+  syncInputs("rateRange", "rateNum");
+  syncInputs("dpPercRange", "dpPercNum");
+  syncInputs("apprecRange", "apprecNum");
+
+  document.getElementById("priceNum").addEventListener("input", autoCalculateRent);
+  document.getElementById("priceRange").addEventListener("input", autoCalculateRent);
+
+  autoCalculateRent();
+  updateUnitDisplays();
+  updateDPAmount();
+  calculateROI();
+});
+</script>
+</body>
+</html>
